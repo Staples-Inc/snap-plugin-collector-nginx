@@ -1,0 +1,83 @@
+{
+	"ImportPath": "github.com/intelsdi-x/snap-plugin-collector-jolokia",
+	"GoVersion": "go1.5",
+	"GodepVersion": "v74",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.9.0",
+			"Rev": "be52937128b38f1d99787bb476c789e2af1147f1"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/control/plugin",
+			"Comment": "v0.14.0-beta-31-g6a8ba3a",
+			"Rev": "6a8ba3a048f9d8ba676f813a26ba9f998e439be8"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/control/plugin/cpolicy",
+			"Comment": "v0.14.0-beta-31-g6a8ba3a",
+			"Rev": "6a8ba3a048f9d8ba676f813a26ba9f998e439be8"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/control/plugin/encoding",
+			"Comment": "v0.14.0-beta-31-g6a8ba3a",
+			"Rev": "6a8ba3a048f9d8ba676f813a26ba9f998e439be8"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/control/plugin/encrypter",
+			"Comment": "v0.14.0-beta-31-g6a8ba3a",
+			"Rev": "6a8ba3a048f9d8ba676f813a26ba9f998e439be8"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/core",
+			"Comment": "v0.14.0-beta-31-g6a8ba3a",
+			"Rev": "6a8ba3a048f9d8ba676f813a26ba9f998e439be8"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/core/cdata",
+			"Comment": "v0.14.0-beta-31-g6a8ba3a",
+			"Rev": "6a8ba3a048f9d8ba676f813a26ba9f998e439be8"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/core/ctypes",
+			"Comment": "v0.14.0-beta-31-g6a8ba3a",
+			"Rev": "6a8ba3a048f9d8ba676f813a26ba9f998e439be8"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/core/serror",
+			"Comment": "v0.14.0-beta-31-g6a8ba3a",
+			"Rev": "6a8ba3a048f9d8ba676f813a26ba9f998e439be8"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/pkg/ctree",
+			"Comment": "v0.14.0-beta-31-g6a8ba3a",
+			"Rev": "6a8ba3a048f9d8ba676f813a26ba9f998e439be8"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/pkg/schedule",
+			"Comment": "v0.14.0-beta-31-g6a8ba3a",
+			"Rev": "6a8ba3a048f9d8ba676f813a26ba9f998e439be8"
+		},
+		{
+			"ImportPath": "github.com/intelsdi-x/snap/scheduler/wmap",
+			"Comment": "v0.14.0-beta-31-g6a8ba3a",
+			"Rev": "6a8ba3a048f9d8ba676f813a26ba9f998e439be8"
+		},
+		{
+			"ImportPath": "github.com/robfig/cron",
+			"Comment": "v1-7-g32d9c27",
+			"Rev": "32d9c273155a0506d27cf73dd1246e86a470997e"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "7f918dd405547ecb864d14a8ecbbfe205b5f930f"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "c1cd2254a6dd314c9d73c338c12688c9325d85c6"
+		}
+	]
+}
