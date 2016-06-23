@@ -2,13 +2,13 @@
 package main
 
 import (
-   "os"
+"os"
 
-   "github.com/intelsdi-x/snap/control/plugin"
-   "github.com/intelsdi-x/snap-plugin-collector-jolokia/jolokia"
+"github.com/intelsdi-x/snap/control/plugin"
+"github.com/intelsdi-x/snap-plugin-collector-nginx/nginx"
 )
 
 func main() {
-    meta := jolokia.Meta()
-    plugin.Start(meta, new(jolokia.Jolokia), os.Args[1])
+	meta := nginx.Meta()
+	plugin.Start(meta, new(nginx.Nginx), os.Args[1])
 }

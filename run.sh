@@ -1,5 +1,5 @@
 go install ./...
-~/work/bin/snap-v0.14.0-beta/bin/snapctl plugin load ~/work/bin/snap-plugin-collector-jolokia
-~/work/bin/snap-v0.14.0-beta/bin/snapctl plugin load ~/work/bin/snap-v0.14.0-beta/plugin/snap-processor-passthru
-~/work/bin/snap-v0.14.0-beta/bin/snapctl plugin load ~/work/bin/snap-v0.14.0-beta/plugin/snap-publisher-file
-~/work/bin/snap-v0.14.0-beta/bin/snapctl task create -t ~/work/src/github.com/intelsdi-x/snap-plugin-collector-jolokia/examples/tasks/task.json
+$GOPATH/bin/snap-v0.14.0-beta/bin/snapctl plugin load $GOPATH/bin/snap-plugin-collector-nginx
+$GOPATH/bin/snap-v0.14.0-beta/bin/snapctl plugin load $GOPATH/bin/snap-v0.14.0-beta/plugin/snap-processor-passthru
+$GOPATH/bin/snap-v0.14.0-beta/bin/snapctl plugin load $GOPATH/bin/snap-plugin-publisher-metrics
+$GOPATH/bin/snap-v0.14.0-beta/bin/snapctl task create -t $GOPATH/src/github.com/intelsdi-x/snap-plugin-collector-nginx/examples/tasks/task.json
