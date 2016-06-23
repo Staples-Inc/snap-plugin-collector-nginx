@@ -13,6 +13,7 @@ import (
 "strconv"
 "crypto/md5"
 "encoding/hex"
+"reflect"
 
 
 "github.com/intelsdi-x/snap/control/plugin"
@@ -56,11 +57,11 @@ func getHostName( inData interface{}, hostName string)(string) {
     switch mtype := inData.(type) {
     case map[string]interface{}:
         val := mtype["server"].(string)
-//Default hostname with port will be encoded to md5
-//If LookUpAddr get valid hostname it will be replace
+        //Default hostname with port will be encoded to md5
+        //If LookUpAddr get valid hostname it will be replace
         hostName = fmt.Sprintf("host_id_%s",getMD5Hash(val))
 
-//check for IPV4
+        //check for IPV4
         if strings.Count(val,".") == 3 {
             subStr := strings.Split(val,":")
             hName,err := net.LookupAddr(subStr[0])
@@ -90,7 +91,7 @@ func checkIgnoreMetric(mkey string)(bool) {
     IgnoreMetric := ""
     ret := false
     if strings.EqualFold(IgnoreChildMetric,"nil") == false {
-        subMetric := strings.Split(mkey,".")
+        subMetric := strings.Split(mkey,"/")
         if strings.Contains(IgnoreChildMetric,subMetric[len(subMetric)-1]) == true {
             ret = true
         }
@@ -115,123 +116,113 @@ func getNamespace(mkey string)(ns core.Namespace) {
     return ns 
 }
 
-func switchType(outMetric *map[string]plugin.MetricType, mval interface{}, ak string) {
+func switchType(outMetric *[]plugin.MetricType, mval interface{}, ak string) {
+
     switch mtype := mval.(type) {
     case bool:
         if checkIgnoreMetric(ak) == true {
             return
         }
         if mval == false { 
-            ns := getNamespace(ak) 
-            (*outMetric)[ns.String()]= plugin.MetricType{
-                Namespace_:ns,
-                Data_:0,
-                Timestamp_:time.Now(),
-            }     
+          ns := getNamespace(ak) 
+          tmp := plugin.MetricType{
+            Namespace_:ns,
+            Data_:mval,
+            Timestamp_:time.Now(),
+          }     
+          *outMetric = append(*outMetric,tmp)
         } else {
-            ns := getNamespace(ak) 
-            (*outMetric)[ns.String()]= plugin.MetricType{
-                Namespace_:ns,
-                Data_:1,
-                Timestamp_:time.Now(),
-            }     
+          ns := getNamespace(ak) 
+          tmp := plugin.MetricType{
+            Namespace_:ns,
+            Data_:mval,
+            Timestamp_:time.Now(),
+          }     
+          *outMetric = append(*outMetric,tmp)
         }
     case int, int64, float64, string:
         if checkIgnoreMetric(ak) == true {
             return
         }
         ns := getNamespace(ak) 
-        (*outMetric)[ns.String()]= plugin.MetricType{
+        tmp := plugin.MetricType{
             Namespace_:ns,
             Data_:mval,
             Timestamp_:time.Now(),
         }     
+        *outMetric = append(*outMetric,tmp)
     case map[string]interface{}:
         parseMetrics(outMetric, mtype, ak)
     case []interface{}:
         parseArrMetrics(outMetric, mtype, ak)
     default:
-//fmt.Println("In default missing type =",reflect.TypeOf(mval))
+      fmt.Println("In default missing type =",reflect.TypeOf(mval))
     }
+    return
 }
 
-func parseArrMetrics( outMetric *map[string]plugin.MetricType, inData []interface{}, parentKey string)  {
+func parseArrMetrics( outMetric *[]plugin.MetricType, inData []interface{}, parentKey string)  {
     for mkey, mval := range inData {
+        //fmt.Println("mkey =", mkey,"mval =",mval,"inData =",inData,"parentKey =",parentKey)
         subMetric := strings.Split(parentKey,"/")
         if subMetric[len(subMetric)-1] == "peers" {
             hostName:= getHostName(mval, strconv.Itoa(mkey))
-//fmt.Println("hostName =",hostName)
+            //fmt.Println("hostName =",hostName)
             switchType(outMetric, mval, parentKey+"/"+hostName)
         }else {
-            switchType(outMetric, mval, parentKey+"/"+strconv.Itoa(mkey))
+            switchType(outMetric, mval, parentKey+ "/"+ strconv.Itoa(mkey))
         }
     }
+    return
 }
 
 
-func parseMetrics( outMetric *map[string]plugin.MetricType, inData map[string]interface{}, parentKey string)  {
+func parseMetrics( outMetric *[]plugin.MetricType, inData map[string]interface{}, parentKey string)  {
 
     for mkey, mval := range inData {
         switchType(outMetric, mval, parentKey + "/" + mkey)
     }
+    return
 }
 
 
-func getMetrics(mts *[]plugin.MetricType, webserver string, metrics []string) ([]plugin.MetricType, error) {
+func getMetrics(webserver string, metrics []string) (mts []plugin.MetricType, err error) {
     tr := &http.Transport{}
     client := &http.Client{Transport: tr}
-    resp, err := client.Get(webserver)
-    if err != nil {
-        return nil, err
+    resp, err1 := client.Get(webserver)
+    if err1 != nil {
+        return nil, err1
     }
     if resp.StatusCode != 200 {
         defer resp.Body.Close()
         return nil, errReqFailed
     }
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {
-        return nil,err
+    body, err2 := ioutil.ReadAll(resp.Body)
+    if err2 != nil {
+        return nil,err2
     }
-    defer resp.Body.Close()
 
-    var jFmt map[string]interface{}
+    //fmt.Println("Before Unmarshal")
+ 
+    jFmt := make(map[string]interface{})
 
     err = json.Unmarshal(body, &jFmt)
     if err != nil {
         return nil, err
     }
 
-    mtsmap :=  make(map[string]plugin.MetricType)
+    //fmt.Println("jFmt =",jFmt)
 
     pk :="staples"+"/"+"nginx"
-    parseMetrics(&mtsmap,jFmt,pk)
+    parseMetrics(&mts,jFmt,pk)
 
-//fmt.Println("mtsmap =",mtsmap)
-//fmt.Println("len mtsmap =",len(mtsmap))
+    fmt.Println("After calling parseMetrics\n")
 
-    if len(metrics) == 0 {
-//mts := make([]plugin.MetricType, 0, len(mtsmap))
-        for _, v := range mtsmap {
-            *mts = append(*mts, v)
-        }
-        return *mts, nil
-    }
-
-//fmt.Println("len metrics =",len(metrics))
-//mts := make([]plugin.MetricType, 0, len(metrics))
-    for _, v := range metrics {
-        mt, ok := mtsmap[v]
-        if ok {
-            *mts = append(*mts, mt)
-        }
-    }
-    return *mts, nil
+    return mts, nil
 }
 
-func (n *Nginx) CollectMetrics(mts []plugin.MetricType) ([]plugin.MetricType, error) {
-    webservercfg := mts[0].Config().Table()
-
-    outputmts := make([]plugin.MetricType,0,1)  
+func (n *Nginx) CollectMetrics(inmts []plugin.MetricType) (mts []plugin.MetricType, err error) {
+    webservercfg := inmts[0].Config().Table()
 
     for _,v := range webservercfg {
         webserver, ok := v.(ctypes.ConfigValueStr)
@@ -239,41 +230,37 @@ func (n *Nginx) CollectMetrics(mts []plugin.MetricType) ([]plugin.MetricType, er
             return nil, errBadWebserver
         }
 
-        metrics := make([]string, len(mts))
+        metrics := make([]string, len(inmts))
 
-        for i, m := range mts {
-metrics[i] = m.Namespace().String()//[len(m.Namespace())-1].Value
+        for i, m := range inmts {
+            metrics[i] = m.Namespace().String()
+        }
+
+        mts, err = getMetrics(webserver.Value, metrics)
+
+        if err != nil {
+            fmt.Println("Error in Get Metric =",err) 
+        } 
+    }
+
+    fmt.Println("CollectMetrics =",mts) 
+
+    return mts,nil
 }
 
-_, err := getMetrics(&outputmts, webserver.Value, metrics)
-
-if err != nil {
-    fmt.Println("Error in Get Metric =",err) 
-} 
-}
-
-fmt.Println("CollectMetrics =",outputmts) 
-
-return outputmts, nil
-}
-
-func (n *Nginx) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType, error) {
+func (n *Nginx) GetMetricTypes(cfg plugin.ConfigType) (mts []plugin.MetricType, err error) {
     webservercfg := cfg.Table()
     if webservercfg == nil {
         return nil,errConfigReadError
     }
 
-    mts := make([]plugin.MetricType,0,1)  
-
     for _,v := range webservercfg {
         webserver, ok := v.(ctypes.ConfigValueStr)
         if !ok {
             return nil, errBadWebserver
         }
 
-        fmt.Println(webserver.Value)
-
-        _, err := getMetrics(&mts, webserver.Value, []string{})
+        mts, err = getMetrics(webserver.Value, []string{})
         if err != nil {
             fmt.Println("Error in Get Metric =",err) 
         } 
@@ -288,7 +275,7 @@ func (n *Nginx) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
     nginxrule,_ := cpolicy.NewStringRule("nginx_status_url", false ,"http://demo.nginx.com/status")
     policy := cpolicy.NewPolicyNode()
     policy.Add(nginxrule)
-    cfg.Add([]string{"staples","jolokia"},policy)
+    cfg.Add([]string{"staples","nginx"},policy)
     return cfg, nil
 }
 
