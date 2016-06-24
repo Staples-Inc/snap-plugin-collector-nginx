@@ -127,7 +127,7 @@ func switchType(outMetric *[]plugin.MetricType, mval interface{}, ak string) {
           ns := getNamespace(ak) 
           tmp := plugin.MetricType{
             Namespace_:ns,
-            Data_:mval,
+            Data_:0,
             Timestamp_:time.Now(),
           }     
           *outMetric = append(*outMetric,tmp)
@@ -135,7 +135,7 @@ func switchType(outMetric *[]plugin.MetricType, mval interface{}, ak string) {
           ns := getNamespace(ak) 
           tmp := plugin.MetricType{
             Namespace_:ns,
-            Data_:mval,
+            Data_:1,
             Timestamp_:time.Now(),
           }     
           *outMetric = append(*outMetric,tmp)
