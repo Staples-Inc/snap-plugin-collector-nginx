@@ -6,11 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	// "github.com/intelsdi-x/snap-plugin-utilities/ns"
-	"github.com/intelsdi-x/snap/control/plugin"
-	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
-	"github.com/intelsdi-x/snap/core"
-	"github.com/intelsdi-x/snap/core/ctypes"
 	"io/ioutil"
 	"log"
 	"net"
@@ -19,6 +14,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/intelsdi-x/snap/control/plugin"
+	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
+	"github.com/intelsdi-x/snap/core"
+	"github.com/intelsdi-x/snap/core/ctypes"
 )
 
 const (
@@ -139,15 +139,12 @@ func switchType(outMetric *[]plugin.MetricType, mval interface{}, ak string) {
 		if checkIgnoreMetric(ak) == true {
 			return
 		}
-		log.Println(ak)
-		log.Println(mval)
 		ns := getNamespace(ak)
 		tmp := plugin.MetricType{
 			Namespace_: ns,
 			Data_:      mval,
 			Timestamp_: time.Now(),
 		}
-		log.Println(tmp)
 		*outMetric = append(*outMetric, tmp)
 	case map[string]interface{}:
 		parseMetrics(outMetric, mtype, ak)
@@ -177,7 +174,6 @@ func parseMetrics(outMetric *[]plugin.MetricType, inData map[string]interface{},
 	for mkey, mval := range inData {
 		switchType(outMetric, mval, parentKey+"/"+mkey)
 	}
-
 	return
 }
 
@@ -207,12 +203,6 @@ func getMetrics(webserver string, metrics []string) (mts []plugin.MetricType, er
 	pk := "staples" + "/" + "nginx"
 	parseMetrics(&mts, jFmt, pk)
 
-	// var names []string
-	// ns.FromJSON(&body, "staples", &names)
-	// log.Println(strings.Join(names, "\n"))
-
-	// log.Println(mts)
-
 	return mts, nil
 }
 
@@ -236,13 +226,7 @@ func (n *Nginx) CollectMetrics(inmts []plugin.MetricType) ([]plugin.MetricType, 
 		log.Println("Error in Get Metric =", err)
 	}
 
-	var returnMets []plugin.MetricType
-	for _, m := range mts {
-		log.Println(m)
-		returnMets = append(returnMets, m)
-	}
-
-	return returnMets, nil
+        return mts, nil   
 }
 
 func (n *Nginx) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType, error) {
@@ -262,13 +246,7 @@ func (n *Nginx) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType, erro
 		log.Println("Error in Get Metric =", err)
 	}
 
-	var returnMets []plugin.MetricType
-	for _, m := range mts {
-		log.Println(m)
-		returnMets = append(returnMets, m)
-	}
-
-	return returnMets, nil
+        return mts, nil 
 }
 
 func (n *Nginx) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
