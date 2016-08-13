@@ -1,16 +1,16 @@
 # Snap Collector plugin - Nginx
 Collector get Nginx metrics from Nginx application and pass it to blueflood and Metric square to store it in cassandra
 
-1. [Getting Started](#getting-started)
+I. [Getting Started](#getting-started)
   * [System Requirements](#system-requirements)
   * [Operating Systems](#operating-systems))
   * [Build](#build)
   * [Run](#run)
   * [Verify](#verify)
 
-2. [Contributing](#contributing)
+II. [Contributing](#contributing)
 
-3. [License](#license)
+III. [License](#license)
 
 ## Getting Started
 A working snap agent and a running instance of Nignx application which expose a rest api in json format to get access to real time nignx metrics.
