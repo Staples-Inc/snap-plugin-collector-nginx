@@ -23,7 +23,7 @@ A working snap agent and a running instance of Nignx application which expose a 
 * [cassandra](http://cassandra.apache.org/)
 * [nignx] Nignx Application
 
-### Operating System
+### Operating Systems
 * Linux
 * Mac OS X
 
@@ -54,7 +54,7 @@ Run the collector plugin seperately
 To Verify nginx mertics
 > $GOPATH/bin/snap-v0.14.0-beta/bin/snapctl metric list
 
-ontributing
+## Contributing
 We currently have no future plans for this plugin. If you have a feature request, please add it as an issue and/or submit a pull request
 
 ## License
