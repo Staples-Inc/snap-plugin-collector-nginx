@@ -19,9 +19,9 @@ A working snap agent and a running instance of Nignx application which expose a 
 * [golang 1.5+](https://golang.org/dl/)
 * [snap](https://github.com/intelsdi-x/snap)
 * [blueflood](http://blueflood.io/)
-* [metric]((https://github.com/square/metrics)
+* [metric](htts://github.com/square/metrics)
 * [cassandra](http://cassandra.apache.org/)
-* [nignx] Nignx Application
+* [nignx](http://demo.nginx.com/status)
 
 ### Operating Systems
 * Linux
