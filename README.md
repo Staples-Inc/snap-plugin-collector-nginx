@@ -3,7 +3,7 @@ Collector get Nginx metrics from Nginx application and pass it to blueflood and 
 
 I. [Getting Started](#getting-started)
   * [System Requirements](#system-requirements)
-  * [Operating Systems](#operating-systems))
+  * [Operating Systems](#operating-systems)
   * [Build](#build)
   * [Run](#run)
   * [Verify](#verify)
