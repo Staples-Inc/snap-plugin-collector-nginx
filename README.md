@@ -7,7 +7,9 @@ Collector get Nginx metrics from Nginx application and pass it to blueflood and 
   * [Build](#build)
   * [Run](#run)
   * [Verify](#verify)
+
 2. [Contributing](#contributing)
+
 3. [License](#license)
 
 ## Getting Started
@@ -19,7 +21,6 @@ A working snap agent and a running instance of Nignx application which expose a 
 * [blueflood](http://blueflood.io/)
 * [metric]((https://github.com/square/metrics)
 * [cassandra](http://cassandra.apache.org/)
-
 * [nignx] Nignx Application
 
 ### Operating System
