@@ -23,7 +23,7 @@ import (
 
 const (
 	// Name of plugin
-	Name = "nginx"
+	Name = "Nginx"
 	// Version of plugin
 	Version = 1
 	// Type of plugin
@@ -42,12 +42,15 @@ var _ plugin.CollectorPlugin = (*Nginx)(nil)
 
 type Nginx struct{}
 
+
+//Covert server which are not found using LookupAddr
 func getMD5Hash(text string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(text))
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
+//Get hostname based on server ip address of nginx metric
 func getHostName(inData interface{}, hostName string) string {
         flag := false
 	switch mtype := inData.(type) {
@@ -85,6 +88,7 @@ func getHostName(inData interface{}, hostName string) string {
 	return hostName
 }
 
+//Will ignore list of mertic
 func checkIgnoreMetric(mkey string) bool {
 	IgnoreChildMetric := "server"
 	IgnoreMetric := ""
@@ -104,6 +108,7 @@ func checkIgnoreMetric(mkey string) bool {
 	return ret
 }
 
+//Namespace convert based on snap requirment
 func getNamespace(mkey string) (ns core.Namespace) {
 
 	rc := strings.Replace(mkey, ".", "-", -1)
@@ -112,6 +117,7 @@ func getNamespace(mkey string) (ns core.Namespace) {
 	return ns
 }
 
+//Flattern complex json struct metrics 
 func switchType(outMetric *[]plugin.MetricType, mval interface{}, ak string) {
 	switch mtype := mval.(type) {
 	case bool:
@@ -148,6 +154,7 @@ func switchType(outMetric *[]plugin.MetricType, mval interface{}, ak string) {
 	return
 }
 
+//Parse Arrary Metric Data
 func parseArrMetrics(outMetric *[]plugin.MetricType, inData []interface{}, parentKey string) {
 	for mkey, mval := range inData {
 		subMetric := strings.Split(parentKey, "/")
@@ -161,6 +168,7 @@ func parseArrMetrics(outMetric *[]plugin.MetricType, inData []interface{}, paren
 	return
 }
 
+//Parse Metrics
 func parseMetrics(outMetric *[]plugin.MetricType, inData map[string]interface{}, parentKey string) {
 
 	for mkey, mval := range inData {
@@ -169,6 +177,7 @@ func parseMetrics(outMetric *[]plugin.MetricType, inData map[string]interface{},
 	return
 }
 
+//Get nginx metric from Nginx application
 func getMetrics(webserver string, metrics []string) (mts []plugin.MetricType, err error) {
 	tr := &http.Transport{}
 	client := &http.Client{Transport: tr}
@@ -198,6 +207,7 @@ func getMetrics(webserver string, metrics []string) (mts []plugin.MetricType, er
 	return mts, nil
 }
 
+//CollectMetrics API definition
 func (n *Nginx) CollectMetrics(inmts []plugin.MetricType) ([]plugin.MetricType, error) {
 	webservercfg := inmts[0].Config().Table()["nginx_status_url"]
 
@@ -221,6 +231,7 @@ func (n *Nginx) CollectMetrics(inmts []plugin.MetricType) ([]plugin.MetricType, 
         return mts, nil   
 }
 
+//GetMetricType API definition
 func (n *Nginx) GetMetricTypes(cfg plugin.ConfigType) (mts []plugin.MetricType, err error) {
 	webservercfg := cfg.Table()["nginx_status_url"]
 	if webservercfg == nil {
@@ -241,6 +252,7 @@ func (n *Nginx) GetMetricTypes(cfg plugin.ConfigType) (mts []plugin.MetricType, 
         return mts, nil 
 }
 
+//GetConfigPolicy API definition
 func (n *Nginx) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 	cfg := cpolicy.New()
 	nginxrule, _ := cpolicy.NewStringRule("nginx_status_url", false, "http://demo.nginx.com/status")
@@ -250,6 +262,7 @@ func (n *Nginx) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 	return cfg, nil
 }
 
+//Meta API definition
 func Meta() *plugin.PluginMeta {
 	return plugin.NewPluginMeta(
 		Name,
