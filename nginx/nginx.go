@@ -23,11 +23,11 @@ import (
 
 const (
 	// Name of plugin
-	Name = "Nginx"
+	pluginName = "nginx"
 	// Version of plugin
-	Version = 1
+	pluginVersion = 1
 	// Type of plugin
-	Type = plugin.CollectorPluginType
+	pluginType = plugin.CollectorPluginType
 )
 
 var (
@@ -37,13 +37,15 @@ var (
 	errConfigReadError = errors.New("Config read Error")
 )
 
-// make sure that we actually satisify required interface
-var _ plugin.CollectorPlugin = (*Nginx)(nil)
+// NginxCollector type
+type NginxCollector struct{}
 
-type Nginx struct{}
+// NewNginxCollector returns a NginxCollector struct
+func NewNginxCollector() *NginxCollector {
+	return &NginxCollector{}
+}
 
-
-//Covert server which are not found using LookupAddr
+//Convert server which are not found using LookupAddr
 func getMD5Hash(text string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(text))
@@ -52,17 +54,17 @@ func getMD5Hash(text string) string {
 
 //Get hostname based on server ip address of nginx metric
 func getHostName(inData interface{}, hostName string) string {
-        flag := false
+	flag := false
 	switch mtype := inData.(type) {
-	   case map[string]interface{}:
-	        hostName = mtype["server"].(string)
+	case map[string]interface{}:
+		hostName = mtype["server"].(string)
 		//check for IPV4
 		if strings.Count(hostName, ".") == 3 {
 			subStr := strings.Split(hostName, ":")
 			hName, err := net.LookupAddr(subStr[0])
 			if err == nil {
 				hostName = strings.Join(hName, ".")
-                                flag = true
+				flag = true
 			}
 		} else {
 			if strings.Contains(hostName, "::") == true {
@@ -71,17 +73,17 @@ func getHostName(inData interface{}, hostName string) string {
 				hName, err := net.LookupAddr(tStr)
 				if err == nil {
 					hostName = strings.Join(hName, ".")
-                                        flag = true
+					flag = true
 				}
 			}
 		}
 	}
-        if flag == false {
-	  //Default hostname with port will be encoded to md5
-	  hostName = fmt.Sprintf("host_id_%s", getMD5Hash(hostName))
-        } else {
-	  hostName = fmt.Sprintf("host_id_%s", hostName)
-        }
+	if flag == false {
+		//Default hostname with port will be encoded to md5
+		hostName = fmt.Sprintf("host_id_%s", getMD5Hash(hostName))
+	} else {
+		hostName = fmt.Sprintf("host_id_%s", hostName)
+	}
 	hostName = strings.TrimRight(hostName, ".")
 	replacer := strings.NewReplacer(".", "_", "/", "_", "\\", "_", ":", "_", "%", "_")
 	hostName = replacer.Replace(hostName)
@@ -110,44 +112,43 @@ func checkIgnoreMetric(mkey string) bool {
 
 //Namespace convert based on snap requirment
 func getNamespace(mkey string) (ns core.Namespace) {
-
 	rc := strings.Replace(mkey, ".", "-", -1)
 	ss := strings.Split(rc, "/")
 	ns = core.NewNamespace(ss...)
 	return ns
 }
 
-//Flattern complex json struct metrics 
+//Flattern complex json struct metrics
 func switchType(outMetric *[]plugin.MetricType, mval interface{}, ak string) {
 	switch mtype := mval.(type) {
 	case bool:
 		if checkIgnoreMetric(ak) == true {
 			return
 		}
-                ns := getNamespace(ak)
+		ns := getNamespace(ak)
 		tmp := plugin.MetricType{}
-		tmp.Namespace_= ns
-                if mval.(bool) == false {
-		   tmp.Data_= 0 
-                } else {
-		   tmp.Data_= 1
-                }
-		tmp.Timestamp_= time.Now()
+		tmp.Namespace_ = ns
+		if mval.(bool) == false {
+			tmp.Data_ = 0
+		} else {
+			tmp.Data_ = 1
+		}
+		tmp.Timestamp_ = time.Now()
 		*outMetric = append(*outMetric, tmp)
 	case int, int64, float64, string:
 		if checkIgnoreMetric(ak) == true {
 			return
 		}
-                ns := getNamespace(ak)
+		ns := getNamespace(ak)
 		tmp := plugin.MetricType{}
-		tmp.Namespace_= ns
-		tmp.Data_=      mval
-		tmp.Timestamp_= time.Now()
+		tmp.Namespace_ = ns
+		tmp.Data_ = mval
+		tmp.Timestamp_ = time.Now()
 		*outMetric = append(*outMetric, tmp)
 	case map[string]interface{}:
 		parseMetrics(outMetric, mtype, ak)
 	case []interface{}:
-        	parseArrMetrics(outMetric, mtype, ak)
+		parseArrMetrics(outMetric, mtype, ak)
 	default:
 		log.Println("In default missing type =", reflect.TypeOf(mval))
 	}
@@ -160,7 +161,7 @@ func parseArrMetrics(outMetric *[]plugin.MetricType, inData []interface{}, paren
 		subMetric := strings.Split(parentKey, "/")
 		if subMetric[len(subMetric)-1] == "peers" {
 			hostName := getHostName(mval, strconv.Itoa(mkey))
-		        switchType(outMetric, mval, parentKey+"/"+hostName)
+			switchType(outMetric, mval, parentKey+"/"+hostName)
 		} else {
 			switchType(outMetric, mval, parentKey+"/"+strconv.Itoa(mkey))
 		}
@@ -208,7 +209,7 @@ func getMetrics(webserver string, metrics []string) (mts []plugin.MetricType, er
 }
 
 //CollectMetrics API definition
-func (n *Nginx) CollectMetrics(inmts []plugin.MetricType) ([]plugin.MetricType, error) {
+func (n *NginxCollector) CollectMetrics(inmts []plugin.MetricType) ([]plugin.MetricType, error) {
 	webservercfg := inmts[0].Config().Table()["nginx_status_url"]
 
 	webserver, ok := webservercfg.(ctypes.ConfigValueStr)
@@ -228,11 +229,11 @@ func (n *Nginx) CollectMetrics(inmts []plugin.MetricType) ([]plugin.MetricType, 
 		log.Println("Error in Get Metric =", err)
 	}
 
-        return mts, nil   
+	return mts, nil
 }
 
-//GetMetricType API definition
-func (n *Nginx) GetMetricTypes(cfg plugin.ConfigType) (mts []plugin.MetricType, err error) {
+// GetMetricTypes API definition
+func (n *NginxCollector) GetMetricTypes(cfg plugin.ConfigType) (mts []plugin.MetricType, err error) {
 	webservercfg := cfg.Table()["nginx_status_url"]
 	if webservercfg == nil {
 		return nil, errConfigReadError
@@ -249,11 +250,11 @@ func (n *Nginx) GetMetricTypes(cfg plugin.ConfigType) (mts []plugin.MetricType, 
 		log.Println("Error in Get Metric =", err)
 	}
 
-        return mts, nil 
+	return mts, nil
 }
 
 //GetConfigPolicy API definition
-func (n *Nginx) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
+func (n *NginxCollector) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 	cfg := cpolicy.New()
 	nginxrule, _ := cpolicy.NewStringRule("nginx_status_url", false, "http://demo.nginx.com/status")
 	policy := cpolicy.NewPolicyNode()
@@ -265,9 +266,9 @@ func (n *Nginx) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 //Meta API definition
 func Meta() *plugin.PluginMeta {
 	return plugin.NewPluginMeta(
-		Name,
-		Version,
-		Type,
+		pluginName,
+		pluginVersion,
+		pluginType,
 		[]string{plugin.SnapGOBContentType},
 		[]string{plugin.SnapGOBContentType},
 		plugin.Unsecure(true),
