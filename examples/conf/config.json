@@ -1,0 +1,13 @@
+{
+    "control": {
+        "plugins": {
+            "collector": {
+                "nginx": {
+                    "all": {
+                        "nginx_status_url": "http://localhost/status"
+                    }
+                }
+            }
+        }
+    }
+}
