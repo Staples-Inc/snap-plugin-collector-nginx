@@ -16,7 +16,7 @@ A working snap agent and a running instance of Nignx application which expose a 
 ### System Requirements
 * [golang 1.5+](https://golang.org/dl/)
 * [snap](https://github.com/intelsdi-x/snap)
-* [nignx](http://localhost/status)
+* [nginx](https://www.nginx.com/)
 
 ### Operating Systems
 * Linux
