@@ -61,7 +61,7 @@ func NewNginxCollector() *NginxCollector {
 	return &NginxCollector{}
 }
 
-//Convert server which are not found using LookupAddr
+//Convert unresolved ip address to md5
 func getMD5Hash(text string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(text))
