@@ -272,7 +272,7 @@ func (n *NginxCollector) GetMetricTypes(cfg plugin.ConfigType) (mts []plugin.Met
 //GetConfigPolicy API definition
 func (n *NginxCollector) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 	cfg := cpolicy.New()
-	nginxrule, _ := cpolicy.NewStringRule("nginx_status_url", false, "http://demo.nginx.com/status")
+	nginxrule, _ := cpolicy.NewStringRule("nginx_status_url", true, "http://localhost/status")
 	policy := cpolicy.NewPolicyNode()
 	policy.Add(nginxrule)
 	cfg.Add([]string{"staples", "nginx"}, policy)
