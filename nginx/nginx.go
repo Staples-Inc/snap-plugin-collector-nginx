@@ -202,6 +202,8 @@ func getMetrics(webserver string, metrics []string) (mts []plugin.MetricType, er
 	if err1 != nil {
 		return nil, err1
 	}
+        defer resp.Body.Close()
+
 	if resp.StatusCode != 200 {
 		defer resp.Body.Close()
 		return nil, errReqFailed
