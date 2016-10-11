@@ -205,9 +205,10 @@ func getMetrics(nginxServer string, metrics []string) (mList []plugin.MetricType
 
         httptimeout := time.Duration(HTTP_TIME_OUT) * time.Second
 
-	client := &http.Client{
+	client := &http.Client {
                  Transport: tr,
-                 Timeout: httptimeout }
+                 Timeout: httptimeout,
+               }
 
 	resp, err1 := client.Get(nginxServer)
 	if err1 != nil {
