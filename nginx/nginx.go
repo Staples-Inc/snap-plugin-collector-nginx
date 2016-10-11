@@ -44,13 +44,17 @@ const (
 	pluginVersion = 1
 	// Type of plugin
 	pluginType = plugin.CollectorPluginType
+
+        HTTP_200_OK = 200
+        NUM_DOT_IN_IP = 3
+        HTTP_TIME_OUT = 5
 )
 
 var (
-	errNoWebserver     = errors.New("nginx_status_url config required. Check your config JSON file")
-	errBadWebserver    = errors.New("Failed to parse given nginx_status_url")
-	errReqFailed       = errors.New("Request to nginx webserver failed")
-	errConfigReadError = errors.New("Config read Error")
+	ErrorCfgParam      = errors.New("nginx_server_url config required. Check your config JSON file")
+	ErrorBadServer     = errors.New("Failed to parse given nginx_server_url")
+	ErrorRequestFail   = errors.New("Request to nginx server failed")
+	ErrorConfigRead    = errors.New("Config read error")
 )
 
 // NginxCollector type
@@ -75,7 +79,7 @@ func getHostName(inData interface{}, hostName string) string {
 	case map[string]interface{}:
 		hostName = mtype["server"].(string)
 		//check for IPV4
-		if strings.Count(hostName, ".") == 3 {
+		if strings.Count(hostName, ".") == NUM_DOT_IN_IP {
 			subStr := strings.Split(hostName, ":")
 			hName, err := net.LookupAddr(subStr[0])
 			if err == nil {
@@ -195,88 +199,95 @@ func parseMetrics(outMetric *[]plugin.MetricType, inData map[string]interface{},
 }
 
 //Get nginx metric from Nginx application
-func getMetrics(webserver string, metrics []string) (mts []plugin.MetricType, err error) {
+func getMetrics(nginxServer string, metrics []string) (mList []plugin.MetricType, err error) {
+
 	tr := &http.Transport{}
-	client := &http.Client{Transport: tr}
-	resp, err1 := client.Get(webserver)
+
+        httptimeout := time.Duration(HTTP_TIME_OUT) * time.Second
+
+	client := &http.Client{
+                 Transport: tr,
+                 Timeout: httptimeout }
+
+	resp, err1 := client.Get(nginxServer)
 	if err1 != nil {
 		return nil, err1
 	}
         defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
-		defer resp.Body.Close()
-		return nil, errReqFailed
+	if resp.StatusCode != HTTP_200_OK {
+		return nil, ErrorRequestFail
 	}
+
 	body, err2 := ioutil.ReadAll(resp.Body)
 	if err2 != nil {
 		return nil, err2
 	}
 
 	jFmt := make(map[string]interface{})
-
 	err = json.Unmarshal(body, &jFmt)
 	if err != nil {
 		return nil, err
 	}
 
 	pk := "staples" + "/" + "nginx"
-	parseMetrics(&mts, jFmt, pk)
+	parseMetrics(&mList, jFmt, pk)
 
-	return mts, nil
+	return mList, nil
 }
 
 //CollectMetrics API definition
 func (n *NginxCollector) CollectMetrics(inmts []plugin.MetricType) ([]plugin.MetricType, error) {
-	webservercfg := inmts[0].Config().Table()["nginx_status_url"]
 
-	webserver, ok := webservercfg.(ctypes.ConfigValueStr)
+	nginxServerUrlCfg := inmts[0].Config().Table()["nginx_server_url"]
+	if nginxServerUrlCfg == nil {
+		return nil, ErrorConfigRead
+	}
+
+	nginxServerUrl, ok := nginxServerUrlCfg.(ctypes.ConfigValueStr)
 	if !ok {
-		return nil, errBadWebserver
+		return nil, ErrorBadServer
 	}
 
-	metrics := make([]string, len(inmts))
+	metricsList := make([]string, len(inmts))
 
-	for i, m := range inmts {
-		metrics[i] = m.Namespace().String()
+	for i, mts := range inmts {
+		metricsList[i] = mts.Namespace().String()
 	}
 
-	mts, err := getMetrics(webserver.Value, metrics)
-
+	mList, err := getMetrics(nginxServerUrl.Value, metricsList)
 	if err != nil {
-		log.Println("Error in Get Metric =", err)
+		log.Println("Error in getMetrics =", err)
 	}
-
-	return mts, nil
+	return mList, nil
 }
 
 // GetMetricTypes API definition
-func (n *NginxCollector) GetMetricTypes(cfg plugin.ConfigType) (mts []plugin.MetricType, err error) {
-	webservercfg := cfg.Table()["nginx_status_url"]
-	if webservercfg == nil {
-		return nil, errConfigReadError
+func (n *NginxCollector) GetMetricTypes(cfg plugin.ConfigType) (mList []plugin.MetricType, err error) {
+
+	nginxServerUrlCfg := cfg.Table()["nginx_server_url"]
+	if nginxServerUrlCfg == nil {
+		return nil, ErrorConfigRead
 	}
 
-	webserver, ok := webservercfg.(ctypes.ConfigValueStr)
+	nginxServerUrl, ok := nginxServerUrlCfg.(ctypes.ConfigValueStr)
 	if !ok {
-		return nil, errBadWebserver
+		return nil, ErrorBadServer
 	}
 
-	mts, err = getMetrics(webserver.Value, []string{})
-
+	mList, err = getMetrics(nginxServerUrl.Value, []string{})
 	if err != nil {
-		log.Println("Error in Get Metric =", err)
+		log.Println("Error in getMetrics =", err)
 	}
-
-	return mts, nil
+	return mList, nil
 }
 
 //GetConfigPolicy API definition
 func (n *NginxCollector) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 	cfg := cpolicy.New()
-	nginxrule, _ := cpolicy.NewStringRule("nginx_status_url", true, "http://localhost/status")
+	nginxServerUrl, _ := cpolicy.NewStringRule("nginx_server_url", true, "http://localhost/status")
 	policy := cpolicy.NewPolicyNode()
-	policy.Add(nginxrule)
+	policy.Add(nginxServerUrl)
 	cfg.Add([]string{"staples", "nginx"}, policy)
 	return cfg, nil
 }

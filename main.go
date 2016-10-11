@@ -19,7 +19,7 @@ package main
 import (
 	"os"
 
-	"github.com/Staples-Inc/snap-plugin-collector-nginx/nginx"
+	"github.com/intelsdi-x/snap-plugin-collector-nginx/nginx"
 	"github.com/intelsdi-x/snap/control/plugin"
 )
 
