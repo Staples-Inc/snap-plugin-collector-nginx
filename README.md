@@ -7,14 +7,16 @@ Collector get Nginx metrics from Nginx application and pass it to blueflood and 
   * [Build](#build)
   * [Run](#run)
   * [Verify](#verify)
-2. [Contributing](#contributing)
-3. [License](#license)
+  * [Configuration and Usage](#configuration-and-usage)
+2. [Community Support](#community-support)
+3. [Contributing](#contributing)
+4. [License](#license)
 
 ## Getting Started
 A working snap agent and a running instance of Nignx application which expose a rest api in json format to get access to real time nignx metrics.
 
 ### System Requirements
-* [golang 1.5+](https://golang.org/dl/)
+* [golang 1.5+](https://golang.org/dl/) - needed only for building
 * [snap](https://github.com/intelsdi-x/snap)
 * [nginx](https://www.nginx.com/)
 
@@ -37,17 +39,28 @@ $ make
 This builds the plugin in `/build/rootfs/`
 
 ### Run
-Run the snap agent with the config file
+Make sure that your $SNAP_PATH is set, e.g.:
 
-> $GOPATH/bin/snap-v0.14.0-beta/bin/snapd --plugin-trust 0 --log-level 1 --config $GOPATH/src/github.com/intelsdi-x/snap-plugin-collector-nginx/config.json
+$ export SNAP_PATH=\<snapDirectoryPath\>/build/linux/x86_64
 
-Run the collector plugin seperately
+Run the snap agent with the config file:
+> $SNAP_PATH/snapteld --plugin-trust 0 --log-level 1 --config $GOPATH/src/github.com/Staples-Inc/snap-plugin-collector-nginx/config.json
 
-> $GOPATH/bin/snap-v0.14.0-beta/bin/snapctl  plugin load $GOPATH/bin/snap-plugin-collector-nginx
+Load the collector plugin:
+> $SNAP_PATH/snaptel plugin load $GOPATH/src/github.com/Staples-Inc/snap-plugin-collector-nginx/build/rootfs/snap-plugin-collector-nginx
 
 ### Verify
-To Verify nginx mertics
-> $GOPATH/bin/snap-v0.14.0-beta/bin/snapctl metric list
+To Verify nginx mertics:
+> $SNAP_PATH/snaptel metric list
+
+### Configuration and Usage
+* Set up the [Snap framework](https://github.com/intelsdi-x/snap/blob/master/README.md#getting-started)
+As part of snapd global config
+* Load the plugin and create a task, you can find example config and task manifest files in "examples" directory
+
+## Community Support
+This repository is one of **many** plugins in **Snap**, a powerful telemetry framework. The full project is at http://github.com:intelsdi-x/snap.
+To reach out on other use cases, visit [Slack](http://slack.snap-telemetry.io).
 
 ## Contributing
 We currently have no future plans for this plugin. If you have a feature request, please add it as an issue and/or submit a pull request
