@@ -1,0 +1,33 @@
+package: github.com/Staples-Inc/snap-plugin-collector-nginx
+import:
+- package: github.com/Sirupsen/logrus
+  version: f3cfb454f4c209e6668c95216c4744b8fddb2356
+- package: github.com/intelsdi-x/snap
+  version: 3777f4376adecef6be7db1b972f7504c4a24aba0
+  subpackages:
+  - control/plugin
+  - control/plugin/cpolicy
+  - control/plugin/encoding
+  - control/plugin/encrypter
+  - core
+  - core/cdata
+  - core/ctypes
+  - core/serror
+  - pkg/ctree
+  - pkg/schedule
+  - scheduler/wmap
+- package: github.com/robfig/cron
+  version: 6f2e8282a1a0d694e55a48ce7d077ee46747feeb
+- package: golang.org/x/sys
+  version: 7f918dd405547ecb864d14a8ecbbfe205b5f930f
+  subpackages:
+  - unix
+- package: gopkg.in/yaml.v2
+  version: a83829b6f1293c91addabc89d0571c246397bbf4
+- package: github.com/intelsdi-x/snap-plugin-lib-go
+  subpackages:
+  - v1/plugin
+testImport:
+- package: github.com/smartystreets/goconvey
+  subpackages:
+  - convey

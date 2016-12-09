@@ -18,22 +18,16 @@ package nginx
 
 import (
 	"testing"
+	"fmt"
 
-	"github.com/intelsdi-x/snap/control/plugin"
-	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
+	"github.com/jarcoal/httpmock"
+	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestNginxPlugin(t *testing.T) {
-	Convey("Meta should return metadata for the plugin", t, func() {
-		meta := Meta()
-		So(meta.Name, ShouldResemble, pluginName)
-		So(meta.Version, ShouldResemble, pluginVersion)
-		So(meta.Type, ShouldResemble, plugin.CollectorPluginType)
-	})
-
+	nginxCol := NewNginxCollector()
 	Convey("Create nginx Collector", t, func() {
-		nginxCol := NewNginxCollector()
 		Convey("So nginxCol should not be nil", func() {
 			So(nginxCol, ShouldNotBeNil)
 		})
@@ -46,8 +40,25 @@ func TestNginxPlugin(t *testing.T) {
 				So(configPolicy, ShouldNotBeNil)
 			})
 			Convey("So config policy should be a cpolicy.ConfigPolicy", func() {
-				So(configPolicy, ShouldHaveSameTypeAs, &cpolicy.ConfigPolicy{})
+				So(configPolicy, ShouldHaveSameTypeAs, plugin.ConfigPolicy{})
 			})
 		})
+	})
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterResponder("GET", "http://localhost/status",
+	httpmock.NewStringResponder(200, exampleStatus))
+
+	cfg := plugin.Config{
+		"nginx_server_url": "http://localhost/status",
+	}
+
+	Convey("Get Nginx Metric Catalog", t, func() {
+		metrics, err := nginxCol.GetMetricTypes(cfg)
+		So(err, ShouldBeNil)
+		for _, mt := range metrics {
+			fmt.Println(mt.Namespace.Strings())
+		}
 	})
 }

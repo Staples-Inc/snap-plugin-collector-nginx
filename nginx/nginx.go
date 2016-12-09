@@ -31,30 +31,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/intelsdi-x/snap/control/plugin"
-	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
-	"github.com/intelsdi-x/snap/core"
-	"github.com/intelsdi-x/snap/core/ctypes"
+	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
 )
 
 const (
-	// Name of plugin
-	pluginName = "nginx"
-	// Version of plugin
-	pluginVersion = 1
-	// Type of plugin
-	pluginType = plugin.CollectorPluginType
-
-        HTTP_200_OK = 200
-        NUM_DOT_IN_IP = 3
-        HTTP_TIME_OUT = 5
+	numDotInIP  = 3
+	httpTimeout = 5
 )
 
 var (
-	ErrorCfgParam      = errors.New("nginx_server_url config required. Check your config JSON file")
-	ErrorBadServer     = errors.New("Failed to parse given nginx_server_url")
-	ErrorRequestFail   = errors.New("Request to nginx server failed")
-	ErrorConfigRead    = errors.New("Config read error")
+	errorCfgParam    = errors.New("nginx_server_url config required. Check your config JSON file")
+	errorBadServer   = errors.New("Failed to parse given nginx_server_url")
+	errorRequestFail = errors.New("Request to nginx server failed")
+	errorConfigRead  = errors.New("Config read error")
 )
 
 // NginxCollector type
@@ -79,7 +68,7 @@ func getHostName(inData interface{}, hostName string) string {
 	case map[string]interface{}:
 		hostName = mtype["server"].(string)
 		//check for IPV4
-		if strings.Count(hostName, ".") == NUM_DOT_IN_IP {
+		if strings.Count(hostName, ".") == numDotInIP {
 			subStr := strings.Split(hostName, ":")
 			hName, err := net.LookupAddr(subStr[0])
 			if err == nil {
@@ -131,39 +120,39 @@ func checkIgnoreMetric(mkey string) bool {
 }
 
 //Namespace convert based on snap requirment
-func getNamespace(mkey string) (ns core.Namespace) {
+func getNamespace(mkey string) (ns plugin.Namespace) {
 	rc := strings.Replace(mkey, ".", "-", -1)
 	ss := strings.Split(rc, "/")
-	ns = core.NewNamespace(ss...)
+	ns = plugin.NewNamespace(ss...)
 	return ns
 }
 
 //Flattern complex json struct metrics
-func switchType(outMetric *[]plugin.MetricType, mval interface{}, ak string) {
+func switchType(outMetric *[]plugin.Metric, mval interface{}, ak string) {
 	switch mtype := mval.(type) {
 	case bool:
 		if checkIgnoreMetric(ak) == true {
 			return
 		}
 		ns := getNamespace(ak)
-		tmp := plugin.MetricType{}
-		tmp.Namespace_ = ns
+		tmp := plugin.Metric{}
+		tmp.Namespace = ns
 		if mval.(bool) == false {
-			tmp.Data_ = 0
+			tmp.Data = 0
 		} else {
-			tmp.Data_ = 1
+			tmp.Data = 1
 		}
-		tmp.Timestamp_ = time.Now()
+		tmp.Timestamp = time.Now()
 		*outMetric = append(*outMetric, tmp)
 	case int, int64, float64, string:
 		if checkIgnoreMetric(ak) == true {
 			return
 		}
 		ns := getNamespace(ak)
-		tmp := plugin.MetricType{}
-		tmp.Namespace_ = ns
-		tmp.Data_ = mval
-		tmp.Timestamp_ = time.Now()
+		tmp := plugin.Metric{}
+		tmp.Namespace = ns
+		tmp.Data = mval
+		tmp.Timestamp = time.Now()
 		*outMetric = append(*outMetric, tmp)
 	case map[string]interface{}:
 		parseMetrics(outMetric, mtype, ak)
@@ -176,7 +165,7 @@ func switchType(outMetric *[]plugin.MetricType, mval interface{}, ak string) {
 }
 
 //Parse Arrary Metric Data
-func parseArrMetrics(outMetric *[]plugin.MetricType, inData []interface{}, parentKey string) {
+func parseArrMetrics(outMetric *[]plugin.Metric, inData []interface{}, parentKey string) {
 	for mkey, mval := range inData {
 		subMetric := strings.Split(parentKey, "/")
 		if subMetric[len(subMetric)-1] == "peers" {
@@ -190,8 +179,7 @@ func parseArrMetrics(outMetric *[]plugin.MetricType, inData []interface{}, paren
 }
 
 //Parse Metrics
-func parseMetrics(outMetric *[]plugin.MetricType, inData map[string]interface{}, parentKey string) {
-
+func parseMetrics(outMetric *[]plugin.Metric, inData map[string]interface{}, parentKey string) {
 	for mkey, mval := range inData {
 		switchType(outMetric, mval, parentKey+"/"+mkey)
 	}
@@ -199,25 +187,19 @@ func parseMetrics(outMetric *[]plugin.MetricType, inData map[string]interface{},
 }
 
 //Get nginx metric from Nginx application
-func getMetrics(nginxServer string, metrics []string) (mList []plugin.MetricType, err error) {
-
-	tr := &http.Transport{}
-
-        httptimeout := time.Duration(HTTP_TIME_OUT) * time.Second
-
+func getMetrics(nginxServer string, metrics []string) (mList []plugin.Metric, err error) {
+  httptimeout := time.Duration(httpTimeout) * time.Second
 	client := &http.Client {
-                 Transport: tr,
-                 Timeout: httptimeout,
-               }
-
+		Timeout: httptimeout,
+	}
 	resp, err1 := client.Get(nginxServer)
 	if err1 != nil {
 		return nil, err1
 	}
-        defer resp.Body.Close()
+	defer resp.Body.Close()
 
-	if resp.StatusCode != HTTP_200_OK {
-		return nil, ErrorRequestFail
+	if resp.StatusCode != 200 {
+		return nil, errorRequestFail
 	}
 
 	body, err2 := ioutil.ReadAll(resp.Body)
@@ -238,25 +220,18 @@ func getMetrics(nginxServer string, metrics []string) (mList []plugin.MetricType
 }
 
 //CollectMetrics API definition
-func (n *NginxCollector) CollectMetrics(inmts []plugin.MetricType) ([]plugin.MetricType, error) {
+func (NginxCollector) CollectMetrics(mts []plugin.Metric) ([]plugin.Metric, error) {
+	nginxServerURL, err := mts[0].Config.GetString("nginx_server_url")
+	if err != nil {
+		return nil, errorBadServer
+	}
+	metricsList := make([]string, len(mts))
 
-	nginxServerUrlCfg := inmts[0].Config().Table()["nginx_server_url"]
-	if nginxServerUrlCfg == nil {
-		return nil, ErrorConfigRead
+	for i, mt := range mts {
+		metricsList[i] = "/" + strings.Join(mt.Namespace.Strings(), "/")
 	}
 
-	nginxServerUrl, ok := nginxServerUrlCfg.(ctypes.ConfigValueStr)
-	if !ok {
-		return nil, ErrorBadServer
-	}
-
-	metricsList := make([]string, len(inmts))
-
-	for i, mts := range inmts {
-		metricsList[i] = mts.Namespace().String()
-	}
-
-	mList, err := getMetrics(nginxServerUrl.Value, metricsList)
+	mList, err := getMetrics(nginxServerURL, metricsList)
 	if err != nil {
 		log.Println("Error in getMetrics =", err)
 	}
@@ -264,19 +239,13 @@ func (n *NginxCollector) CollectMetrics(inmts []plugin.MetricType) ([]plugin.Met
 }
 
 // GetMetricTypes API definition
-func (n *NginxCollector) GetMetricTypes(cfg plugin.ConfigType) (mList []plugin.MetricType, err error) {
-
-	nginxServerUrlCfg := cfg.Table()["nginx_server_url"]
-	if nginxServerUrlCfg == nil {
-		return nil, ErrorConfigRead
+func (NginxCollector) GetMetricTypes(cfg plugin.Config) ([]plugin.Metric, error) {
+	nginxServerURL, err := cfg.GetString("nginx_server_url")
+	if err != nil {
+		return nil, errorConfigRead
 	}
 
-	nginxServerUrl, ok := nginxServerUrlCfg.(ctypes.ConfigValueStr)
-	if !ok {
-		return nil, ErrorBadServer
-	}
-
-	mList, err = getMetrics(nginxServerUrl.Value, []string{})
+	mList, err := getMetrics(nginxServerURL, []string{})
 	if err != nil {
 		log.Println("Error in getMetrics =", err)
 	}
@@ -284,25 +253,8 @@ func (n *NginxCollector) GetMetricTypes(cfg plugin.ConfigType) (mList []plugin.M
 }
 
 //GetConfigPolicy API definition
-func (n *NginxCollector) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
-	cfg := cpolicy.New()
-	nginxServerUrl, _ := cpolicy.NewStringRule("nginx_server_url", true, "http://localhost/status")
-	policy := cpolicy.NewPolicyNode()
-	policy.Add(nginxServerUrl)
-	cfg.Add([]string{"staples", "nginx"}, policy)
-	return cfg, nil
-}
-
-//Meta API definition
-func Meta() *plugin.PluginMeta {
-	return plugin.NewPluginMeta(
-		pluginName,
-		pluginVersion,
-		pluginType,
-		[]string{plugin.SnapGOBContentType},
-		[]string{plugin.SnapGOBContentType},
-		plugin.Unsecure(true),
-		plugin.RoutingStrategy(plugin.DefaultRouting),
-		plugin.CacheTTL(1100*time.Millisecond),
-	)
+func (NginxCollector) GetConfigPolicy() (plugin.ConfigPolicy, error) {
+	cfg := plugin.NewConfigPolicy()
+	cfg.AddNewStringRule([]string{"staples", "nginx"}, "nginx_server_url", true, plugin.SetDefaultString("http://localhost/status"))
+	return *cfg, nil
 }

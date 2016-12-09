@@ -17,13 +17,14 @@ limitations under the License.
 package main
 
 import (
-	"os"
-
 	"github.com/Staples-Inc/snap-plugin-collector-nginx/nginx"
-	"github.com/intelsdi-x/snap/control/plugin"
+	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
+)
+const (
+	pluginName = "nginx"
+	pluginVersion = 2
 )
 
 func main() {
-	meta := nginx.Meta()
-	plugin.Start(meta, nginx.NewNginxCollector(), os.Args[1])
+	plugin.StartCollector(nginx.NewNginxCollector(), pluginName, pluginVersion)
 }
