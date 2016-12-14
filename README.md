@@ -1,5 +1,5 @@
-# Snap Collector plugin - Nginx
-Collector get Nginx metrics from Nginx application and pass it to blueflood and Metric square to store it in cassandra
+# Snap Collector plugin - NginxPlus
+Collector get nginx metrics from the nginx-plus endpoint.
 
 1. [Getting Started](#getting-started)
   * [System Requirements](#system-requirements)
@@ -13,12 +13,13 @@ Collector get Nginx metrics from Nginx application and pass it to blueflood and 
 4. [License](#license)
 
 ## Getting Started
-A working snap agent and a running instance of Nignx application which expose a rest api in json format to get access to real time nignx metrics.
+A working snap agent and a running instance of nginx application which expose a rest api in json format to get access to real time nignx metrics.
 
 ### System Requirements
 * [golang 1.5+](https://golang.org/dl/) - needed only for building
 * [snap](https://github.com/intelsdi-x/snap)
 * [nginx](https://www.nginx.com/)
+* [nginx status module](http://nginx.org/en/docs/http/ngx_http_status_module.html)
 
 ### Operating Systems
 * Linux
@@ -55,7 +56,7 @@ To Verify nginx mertics:
 
 ### Configuration and Usage
 * Set up the [Snap framework](https://github.com/intelsdi-x/snap/blob/master/README.md#getting-started)
-As part of snapd global config
+As part of snapteld global config
 * Load the plugin and create a task, you can find example config and task manifest files in "examples" directory
 
 ## Community Support
@@ -66,4 +67,4 @@ To reach out on other use cases, visit [Slack](http://slack.snap-telemetry.io).
 We currently have no future plans for this plugin. If you have a feature request, please add it as an issue and/or submit a pull request
 
 ## License
-This plugin is Open Source software released uder the Apache 2.0 [License](LICENSE)
+This plugin is Open Source software released under the Apache 2.0 [License](LICENSE)
