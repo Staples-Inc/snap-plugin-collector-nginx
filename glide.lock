@@ -1,24 +1,10 @@
-hash: 313568a4f6e906a4ce739256a253b320a8a7d3bff5befd66edb9278c35ab4d13
-updated: 2016-12-09T13:02:36.43225894-05:00
+hash: 887eab8b133dc9f8c8f62330c25fa7118e244d11e0c2d497a22d95c7bebb8982
+updated: 2017-01-02T18:36:43.74056801+01:00
 imports:
 - name: github.com/golang/protobuf
   version: 888eb0692c857ec880338addf316bd662d5e630e
   subpackages:
   - proto
-- name: github.com/intelsdi-x/snap
-  version: 3777f4376adecef6be7db1b972f7504c4a24aba0
-  subpackages:
-  - control/plugin
-  - control/plugin/cpolicy
-  - control/plugin/encoding
-  - control/plugin/encrypter
-  - core
-  - core/cdata
-  - core/ctypes
-  - core/serror
-  - pkg/ctree
-  - pkg/schedule
-  - scheduler/wmap
 - name: github.com/intelsdi-x/snap-plugin-lib-go
   version: 4b5999a62ffb7604f173c1ab3c2205ba8b559624
   subpackages:
@@ -26,10 +12,6 @@ imports:
   - v1/plugin/rpc
 - name: github.com/julienschmidt/httprouter
   version: 8c199fb6259ffc1af525cc3ad52ee60ba8359669
-- name: github.com/robfig/cron
-  version: 6f2e8282a1a0d694e55a48ce7d077ee46747feeb
-- name: github.com/Sirupsen/logrus
-  version: f3cfb454f4c209e6668c95216c4744b8fddb2356
 - name: golang.org/x/net
   version: 154d9f9ea81208afed560f4cf27b4860c8ed1904
   subpackages:
@@ -39,10 +21,6 @@ imports:
   - internal/timeseries
   - lex/httplex
   - trace
-- name: golang.org/x/sys
-  version: 7f918dd405547ecb864d14a8ecbbfe205b5f930f
-  subpackages:
-  - unix
 - name: google.golang.org/grpc
   version: 0032a855ba5c8a3c8e0d71c2deef354b70af1584
   subpackages:
@@ -54,13 +32,13 @@ imports:
   - naming
   - peer
   - transport
-- name: gopkg.in/yaml.v2
-  version: a83829b6f1293c91addabc89d0571c246397bbf4
 testImports:
 - name: github.com/gopherjs/gopherjs
   version: 4b53e1bddba0e2f734514aeb6c02db652f4c6fe8
   subpackages:
   - js
+- name: github.com/jarcoal/httpmock
+  version: 145b10d659265440f062c31ea15326166bae56ee
 - name: github.com/jtolds/gls
   version: 8ddce2a84170772b95dd5d576c48d517b22cac63
 - name: github.com/smartystreets/assertions
@@ -69,7 +47,7 @@ testImports:
   - internal/go-render/render
   - internal/oglematchers
 - name: github.com/smartystreets/goconvey
-  version: 995f5b2e021c69b8b028ba6d0b05c1dd500783db
+  version: d4c757aa9afd1e2fc1832aaab209b5794eb336e1
   subpackages:
   - convey
   - convey/gotest

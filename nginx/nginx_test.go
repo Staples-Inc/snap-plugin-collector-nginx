@@ -17,11 +17,11 @@ limitations under the License.
 package nginx
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 
-	"github.com/jarcoal/httpmock"
 	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
+	"github.com/jarcoal/httpmock"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -48,7 +48,7 @@ func TestNginxPlugin(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	httpmock.RegisterResponder("GET", "http://localhost/status",
-	httpmock.NewStringResponder(200, exampleStatus))
+		httpmock.NewStringResponder(200, exampleStatus))
 
 	cfg := plugin.Config{
 		"nginx_server_url": "http://localhost/status",

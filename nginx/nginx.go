@@ -37,6 +37,8 @@ import (
 const (
 	numDotInIP  = 3
 	httpTimeout = 5
+
+	configServerURL = "nginx_server_url"
 )
 
 var (
@@ -188,8 +190,8 @@ func parseMetrics(outMetric *[]plugin.Metric, inData map[string]interface{}, par
 
 //Get nginx metric from Nginx application
 func getMetrics(nginxServer string, metrics []string) (mList []plugin.Metric, err error) {
-  httptimeout := time.Duration(httpTimeout) * time.Second
-	client := &http.Client {
+	httptimeout := time.Duration(httpTimeout) * time.Second
+	client := &http.Client{
 		Timeout: httptimeout,
 	}
 	resp, err1 := client.Get(nginxServer)
@@ -221,7 +223,7 @@ func getMetrics(nginxServer string, metrics []string) (mList []plugin.Metric, er
 
 //CollectMetrics API definition
 func (NginxCollector) CollectMetrics(mts []plugin.Metric) ([]plugin.Metric, error) {
-	nginxServerURL, err := mts[0].Config.GetString("nginx_server_url")
+	nginxServerURL, err := getConfigURL(mts[0].Config)
 	if err != nil {
 		return nil, errorBadServer
 	}
@@ -240,7 +242,7 @@ func (NginxCollector) CollectMetrics(mts []plugin.Metric) ([]plugin.Metric, erro
 
 // GetMetricTypes API definition
 func (NginxCollector) GetMetricTypes(cfg plugin.Config) ([]plugin.Metric, error) {
-	nginxServerURL, err := cfg.GetString("nginx_server_url")
+	nginxServerURL, err := getConfigURL(cfg)
 	if err != nil {
 		return nil, errorConfigRead
 	}
@@ -255,6 +257,16 @@ func (NginxCollector) GetMetricTypes(cfg plugin.Config) ([]plugin.Metric, error)
 //GetConfigPolicy API definition
 func (NginxCollector) GetConfigPolicy() (plugin.ConfigPolicy, error) {
 	cfg := plugin.NewConfigPolicy()
-	cfg.AddNewStringRule([]string{"staples", "nginx"}, "nginx_server_url", true, plugin.SetDefaultString("http://localhost/status"))
+	cfg.AddNewStringRule([]string{"staples", "nginx"}, configServerURL, false)
 	return *cfg, nil
+}
+
+// getConfigURL is just workaround for global config value
+// being overwritten by default value from config policy
+func getConfigURL(config plugin.Config) (string, error) {
+	nginxServerURL, err := config.GetString(configServerURL)
+	if err == plugin.ErrConfigNotFound {
+		return "http://localhost/status", nil
+	}
+	return nginxServerURL, err
 }
